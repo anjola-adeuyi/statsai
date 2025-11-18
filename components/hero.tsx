@@ -25,14 +25,13 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
   ({ className, headline = 'Data Drives Decisions', ctaText = 'Try it out', onCtaClick, ...props }, ref) => {
     const { theme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
-    const backgroundRef = React.useRef<HTMLDivElement>(null);
 
     // Get project ID based on theme
-    const getProjectId = React.useCallback(() => {
+    const projectId = React.useMemo(() => {
       return theme === 'dark' ? 'jERRXVaeNMYZqZolgOm2' : 'uOQiFdnPeu70wvKHVz9Y';
     }, [theme]);
 
-    // Set mounted state and initial project ID
+    // Set mounted state
     React.useEffect(() => {
       setMounted(true);
     }, []);
@@ -53,38 +52,20 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
       }
     }, []);
 
-    // Update project ID when theme changes and reinitialize Unicorn Studio
+    // Reinitialize Unicorn Studio when project ID changes
     React.useEffect(() => {
       if (!mounted) return;
 
-      const newProjectId = getProjectId();
-
-      // Update the attribute
-      if (backgroundRef.current) {
-        const currentProjectId = backgroundRef.current.getAttribute('data-us-project');
-
-        // Only update if project ID actually changed
-        if (currentProjectId !== newProjectId) {
-          // Remove the old project by clearing the attribute temporarily
-          backgroundRef.current.removeAttribute('data-us-project');
-
-          // Wait a frame, then set the new project ID
-          requestAnimationFrame(() => {
-            if (backgroundRef.current) {
-              backgroundRef.current.setAttribute('data-us-project', newProjectId);
-
-              // Reinitialize Unicorn Studio to load the new project
-              setTimeout(() => {
-                if (window.UnicornStudio && window.UnicornStudio.init) {
-                  // Reinitialize Unicorn Studio
-                  window.UnicornStudio.init();
-                }
-              }, 150);
-            }
-          });
+      // Small delay to ensure the DOM is updated with the new key/project ID
+      const timer = setTimeout(() => {
+        if (window.UnicornStudio && window.UnicornStudio.init) {
+          // Reinitialize Unicorn Studio to load the new project
+          window.UnicornStudio.init();
         }
-      }
-    }, [theme, mounted, getProjectId]);
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }, [projectId, mounted]);
 
     return (
       <section
@@ -93,13 +74,15 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
         {...props}
       >
         {/* Unicorn.studio interactive background */}
-        <div
-          ref={backgroundRef}
-          id="unicorn-studio-background"
-          className="absolute inset-0 z-0 w-full h-full"
-          aria-label="Interactive background element for unicorn.studio integration"
-          {...(mounted && { 'data-us-project': getProjectId() })}
-        />
+        {mounted && (
+          <div
+            key={projectId}
+            id="unicorn-studio-background"
+            className="absolute inset-0 z-0 w-full h-full"
+            aria-label="Interactive background element for unicorn.studio integration"
+            data-us-project={projectId}
+          />
+        )}
 
         {/* Content */}
         <div className="relative z-10 flex h-full w-full items-end">
