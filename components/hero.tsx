@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 // Type declaration for Unicorn Studio
 declare global {
@@ -22,6 +23,16 @@ export interface HeroProps extends React.HTMLAttributes<HTMLElement> {
 
 export const Hero = React.forwardRef<HTMLElement, HeroProps>(
   ({ className, headline = 'Data Drives Decisions', ctaText = 'Try it out', onCtaClick, ...props }, ref) => {
+    const { theme } = useTheme();
+    const [mounted, setMounted] = React.useState(false);
+
+    // Get project ID based on theme
+    const projectId = theme === 'dark' ? 'jERRXVaeNMYZqZolgOm2' : 'uOQiFdnPeu70wvKHVz9Y';
+
+    React.useEffect(() => {
+      setMounted(true);
+    }, []);
+
     React.useEffect(() => {
       // Initialize Unicorn Studio script
       if (!window.UnicornStudio) {
@@ -38,6 +49,16 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
       }
     }, []);
 
+    // Update project ID when theme changes
+    React.useEffect(() => {
+      if (mounted) {
+        const backgroundDiv = document.getElementById('unicorn-studio-background');
+        if (backgroundDiv) {
+          backgroundDiv.setAttribute('data-us-project', projectId);
+        }
+      }
+    }, [theme, mounted, projectId]);
+
     return (
       <section
         ref={ref}
@@ -49,12 +70,12 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
           id="unicorn-studio-background"
           className="absolute inset-0 z-0 w-full h-full"
           aria-label="Interactive background element for unicorn.studio integration"
-          data-us-project="uOQiFdnPeu70wvKHVz9Y"
+          data-us-project={projectId}
         />
 
         {/* Content */}
         <div className="relative z-10 flex h-full w-full items-end">
-          <div className="w-full px-6 pb-12 md:px-12 md:pb-16 lg:px-16 lg:pb-20 xl:px-20 xl:pb-24">
+          <div className="w-full px-6 pb-16 md:px-12 md:pb-20 lg:px-16 lg:pb-24 xl:px-20 xl:pb-28">
             <div className="max-w-4xl">
               <h1 className="text-5xl font-bold leading-tight tracking-tight text-foreground md:text-6xl lg:text-7xl xl:text-8xl">
                 {headline}
