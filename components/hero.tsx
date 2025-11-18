@@ -25,16 +25,20 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
   ({ className, headline = 'Data Drives Decisions', ctaText = 'Try it out', onCtaClick, ...props }, ref) => {
     const { theme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
+    const backgroundRef = React.useRef<HTMLDivElement>(null);
 
     // Get project ID based on theme
-    const projectId = theme === 'dark' ? 'jERRXVaeNMYZqZolgOm2' : 'uOQiFdnPeu70wvKHVz9Y';
+    const getProjectId = React.useCallback(() => {
+      return theme === 'dark' ? 'jERRXVaeNMYZqZolgOm2' : 'uOQiFdnPeu70wvKHVz9Y';
+    }, [theme]);
 
+    // Set mounted state and initial project ID
     React.useEffect(() => {
       setMounted(true);
     }, []);
 
+    // Initialize Unicorn Studio script
     React.useEffect(() => {
-      // Initialize Unicorn Studio script
       if (!window.UnicornStudio) {
         window.UnicornStudio = { isInitialized: false };
         const script = document.createElement('script');
@@ -49,15 +53,38 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
       }
     }, []);
 
-    // Update project ID when theme changes
+    // Update project ID when theme changes and reinitialize Unicorn Studio
     React.useEffect(() => {
-      if (mounted) {
-        const backgroundDiv = document.getElementById('unicorn-studio-background');
-        if (backgroundDiv) {
-          backgroundDiv.setAttribute('data-us-project', projectId);
+      if (!mounted) return;
+
+      const newProjectId = getProjectId();
+
+      // Update the attribute
+      if (backgroundRef.current) {
+        const currentProjectId = backgroundRef.current.getAttribute('data-us-project');
+
+        // Only update if project ID actually changed
+        if (currentProjectId !== newProjectId) {
+          // Remove the old project by clearing the attribute temporarily
+          backgroundRef.current.removeAttribute('data-us-project');
+
+          // Wait a frame, then set the new project ID
+          requestAnimationFrame(() => {
+            if (backgroundRef.current) {
+              backgroundRef.current.setAttribute('data-us-project', newProjectId);
+
+              // Reinitialize Unicorn Studio to load the new project
+              setTimeout(() => {
+                if (window.UnicornStudio && window.UnicornStudio.init) {
+                  // Reinitialize Unicorn Studio
+                  window.UnicornStudio.init();
+                }
+              }, 150);
+            }
+          });
         }
       }
-    }, [theme, mounted, projectId]);
+    }, [theme, mounted, getProjectId]);
 
     return (
       <section
@@ -67,10 +94,11 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
       >
         {/* Unicorn.studio interactive background */}
         <div
+          ref={backgroundRef}
           id="unicorn-studio-background"
           className="absolute inset-0 z-0 w-full h-full"
           aria-label="Interactive background element for unicorn.studio integration"
-          data-us-project={projectId}
+          {...(mounted && { 'data-us-project': getProjectId() })}
         />
 
         {/* Content */}
