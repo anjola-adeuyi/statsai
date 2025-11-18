@@ -4,6 +4,16 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+// Type declaration for Unicorn Studio
+declare global {
+  interface Window {
+    UnicornStudio?: {
+      isInitialized: boolean;
+      init?: () => void;
+    };
+  }
+}
+
 export interface HeroProps extends React.HTMLAttributes<HTMLElement> {
   headline?: string;
   ctaText?: string;
@@ -12,21 +22,35 @@ export interface HeroProps extends React.HTMLAttributes<HTMLElement> {
 
 export const Hero = React.forwardRef<HTMLElement, HeroProps>(
   ({ className, headline = 'Data Drives Decisions', ctaText = 'Try it out', onCtaClick, ...props }, ref) => {
+    React.useEffect(() => {
+      // Initialize Unicorn Studio script
+      if (!window.UnicornStudio) {
+        window.UnicornStudio = { isInitialized: false };
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.35/dist/unicornStudio.umd.js';
+        script.onload = function () {
+          if (window.UnicornStudio && !window.UnicornStudio.isInitialized && window.UnicornStudio.init) {
+            window.UnicornStudio.init();
+            window.UnicornStudio.isInitialized = true;
+          }
+        };
+        (document.head || document.body).appendChild(script);
+      }
+    }, []);
+
     return (
       <section
         ref={ref}
         className={cn('relative h-screen w-full overflow-hidden', className)}
         {...props}
       >
-        {/* Unicorn.studio interactive background placeholder */}
+        {/* Unicorn.studio interactive background */}
         <div
           id="unicorn-studio-background"
-          className="absolute inset-0 z-0"
+          className="absolute inset-0 z-0 w-full h-full"
           aria-label="Interactive background element for unicorn.studio integration"
-        >
-          {/* This div is designated for unicorn.studio interactive background */}
-          {/* The background element will be integrated here */}
-        </div>
+          data-us-project="uOQiFdnPeu70wvKHVz9Y"
+        />
 
         {/* Content */}
         <div className="relative z-10 flex h-full w-full items-end">
