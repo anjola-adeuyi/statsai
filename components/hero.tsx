@@ -85,8 +85,8 @@ export const Hero = React.forwardRef<HTMLElement, HeroProps>(
         )}
 
         {/* Content */}
-        <div className="relative z-10 flex h-full w-full items-end">
-          <div className="w-full px-6 pb-16 md:px-12 md:pb-20 lg:px-16 lg:pb-24 xl:px-20 xl:pb-28">
+        <div className="relative z-10 flex h-full w-full items-center">
+          <div className="w-full px-6 pt-24 md:px-12 md:pt-32 lg:px-16 lg:pt-40 xl:px-20 xl:pt-48">
             <div className="max-w-4xl">
               <h1 className="text-5xl font-bold leading-tight tracking-tight text-foreground md:text-6xl lg:text-7xl xl:text-8xl">
                 {headline}
